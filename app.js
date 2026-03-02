@@ -39,6 +39,7 @@ document.getElementById('divine-btn').addEventListener('click', function() {
     const method = document.getElementById('method-select').value;
     let origBinary = "", transBinary = "", changingLines = [];
 
+    // 1. 產生本卦與之卦
     for(let i = 0; i < 6; i++) {
         let lineValue = castLine(method);
         if (lineValue === 7 || lineValue === 9) origBinary += "1"; else origBinary += "0";
@@ -63,17 +64,14 @@ document.getElementById('divine-btn').addEventListener('click', function() {
     }
 
     let focusOnZhiGua = false;
-    if (count === 4 || count === 5 || (count === 6 && origId !== "1" && origId !== "2")) {
-        focusOnZhiGua = true;
-    }
-
+    if (count === 4 || count === 5 || (count === 6 && origId !== "1" && origId !== "2")) focusOnZhiGua = true;
     let transHighlight = [];
     if (count === 4 || count === 5) transHighlight = staticLines;
 
     drawHexagram(origBinary, 'orig-pic', changingLines); 
     drawHexagram(transBinary, 'trans-pic', transHighlight); 
 
-    // 📝 處理變爻的顯示邏輯 (明確切分標籤與古文)
+    // 2. 解卦指示排版
     let changingText = `<h3 class="interp-title">解卦指示</h3>`;
     changingText += `本次卜卦共有 <strong style="color:#e74c3c;">${count}</strong> 個變爻。<br><br>`;
 
@@ -87,8 +85,7 @@ document.getElementById('divine-btn').addEventListener('click', function() {
         changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：${origGua.name} ${origGua.yao_ci[y1].name}</span>「${origGua.yao_ci[y1].text}」</div>`;
     } 
     else if (count === 2) {
-        let y1 = changingLines[0]; // 下爻
-        let y2 = changingLines[1]; // 上爻
+        let y1 = changingLines[0]; let y2 = changingLines[1]; 
         changingText += `【解卦法則：兩爻變】<br>請看本卦的兩個變爻，並以<strong>上位者（${origGua.yao_ci[y2].name}）</strong>為主：`;
         changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：${origGua.yao_ci[y2].name}</span>「${origGua.yao_ci[y2].text}」</div>`;
         changingText += `<div class="highlight-aux">次要參考：${origGua.yao_ci[y1].name} ➔「${origGua.yao_ci[y1].text}」</div>`;
@@ -99,8 +96,7 @@ document.getElementById('divine-btn').addEventListener('click', function() {
         changingText += `<div class="highlight-main" style="margin-top:5px;"><span class="ref-title">👉 綜合參考：之卦 (${transGua.name})</span>「${transGua.gua_ci}」</div>`;
     } 
     else if (count === 4) {
-        let s1 = staticLines[0]; // 下爻
-        let s2 = staticLines[1]; // 上爻
+        let s1 = staticLines[0]; let s2 = staticLines[1]; 
         changingText += `【解卦法則：四爻變】<br>未來趨勢成形。請看<strong>之卦（${transGua.name}）</strong>的兩個靜爻，並以<strong>下位者（${transGua.yao_ci[s1].name}）</strong>為主：`;
         changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：${transGua.yao_ci[s1].name}</span>「${transGua.yao_ci[s1].text}」</div>`;
         changingText += `<div class="highlight-aux">次要參考：${transGua.yao_ci[s2].name} ➔「${transGua.yao_ci[s2].text}」</div>`;
@@ -124,14 +120,35 @@ document.getElementById('divine-btn').addEventListener('click', function() {
     let interpBottom = document.getElementById('interp-bottom');
 
     if (focusOnZhiGua) {
-        interpTop.style.display = 'none'; 
-        interpBottom.style.display = 'block'; 
-        interpBottom.innerHTML = changingText; 
+        interpTop.style.display = 'none'; interpBottom.style.display = 'block'; interpBottom.innerHTML = changingText; 
     } else {
-        interpBottom.style.display = 'none'; 
-        interpTop.style.display = 'block'; 
-        interpTop.innerHTML = changingText; 
+        interpBottom.style.display = 'none'; interpTop.style.display = 'block'; interpTop.innerHTML = changingText; 
     }
 
+    // 🌟 3. 互卦、錯卦、綜卦演算法與資料填寫
+    let huBinary = origBinary[1] + origBinary[2] + origBinary[3] + origBinary[2] + origBinary[3] + origBinary[4];
+    let cuoBinary = origBinary.split('').map(b => b === '1' ? '0' : '1').join('');
+    let zongBinary = origBinary.split('').reverse().join('');
+
+    let huId = getGuaIdByBinary(huBinary);
+    let cuoId = getGuaIdByBinary(cuoBinary);
+    let zongId = getGuaIdByBinary(zongBinary);
+
+    // 填寫卦名
+    document.getElementById('hu-name').innerText = iChingData[huId].name;
+    document.getElementById('cuo-name').innerText = iChingData[cuoId].name;
+    document.getElementById('zong-name').innerText = iChingData[zongId].name;
+
+    // 填寫卦辭
+    document.getElementById('hu-guaci').innerText = iChingData[huId].gua_ci;
+    document.getElementById('cuo-guaci').innerText = iChingData[cuoId].gua_ci;
+    document.getElementById('zong-guaci').innerText = iChingData[zongId].gua_ci;
+
+    // 畫出小圖
+    drawHexagram(huBinary, 'hu-pic', []);
+    drawHexagram(cuoBinary, 'cuo-pic', []);
+    drawHexagram(zongBinary, 'zong-pic', []);
+
     document.getElementById('result-panel').style.display = 'block';
+    document.getElementById('advanced-section').style.display = 'block';
 });

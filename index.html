@@ -9,76 +9,52 @@
     <meta name="theme-color" content="#2c3e50">
 
     <style>
-        /* --- 基礎版面與美化樣式 (預設淺色模式) --- */
-        body { 
-            font-family: "微軟正黑體", sans-serif; 
-            max-width: 600px; 
-            margin: 0 auto; 
-            padding: 20px; 
-            line-height: 1.6; 
-            background-color: #f4f4f4;
-            color: #333;
-            transition: background-color 0.3s, color 0.3s; 
-        }
+        /* --- 基礎版面與美化樣式 --- */
+        body { font-family: "微軟正黑體", sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6; background-color: #f4f4f4; color: #333; transition: background-color 0.3s, color 0.3s; }
         h1 { text-align: center; color: #2c3e50; margin-top: 10px; transition: color 0.3s; }
         .header-icon { font-size: 50px; text-align: center; color: #d4af37; margin-bottom: -15px; }
 
-        .control-panel { 
-            background: #fff; padding: 20px; border-radius: 8px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; 
-            margin-bottom: 20px; border-top: 5px solid #d4af37; transition: background-color 0.3s;
-        }
+        .control-panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; margin-bottom: 20px; border-top: 5px solid #d4af37; transition: background-color 0.3s; }
         select, button { font-size: 16px; padding: 10px; margin: 10px 5px; border-radius: 5px; box-sizing: border-box; }
         select { width: 80%; border: 1px solid #ccc; }
         button { cursor: pointer; background-color: #2c3e50; color: white; border: none; font-weight: bold; width: 80%; transition: background 0.3s; }
         button:hover { background-color: #34495e; }
         
-        .result-panel { 
-            background: #fff; padding: 25px; border-radius: 8px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; 
-            margin-bottom: 30px; transition: background-color 0.3s;
-        }
+        .result-panel { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; margin-bottom: 30px; transition: background-color 0.3s; }
         .section-title { color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 0; transition: color 0.3s; }
         
-        /* 卦象圖形樣式 */
+        /* 卦象圖形樣式 (大圖) */
         .hexagram-box { display: flex; flex-direction: column; width: 80px; margin: 15px auto; gap: 6px; }
         .yao { height: 12px; display: flex; justify-content: space-between; }
         .yang { background-color: #2c3e50; width: 100%; transition: background-color 0.3s; }
         .yin-part { background-color: #2c3e50; width: 45%; transition: background-color 0.3s; }
         .changing-yao .yang, .changing-yao .yin-part { background-color: #e74c3c; }
 
-        /* --- 📝 解說文字標示樣式 (淺色模式：白底黑字) --- */
+        /* 解說文字標示樣式 */
         .interp-box { background-color: #fcf8e3; padding: 15px; border-radius: 5px; margin-top: 20px; transition: background-color 0.3s; }
         .interp-title { margin-top: 0; color: #8a6d3b; transition: color 0.3s; }
+        .highlight-main { background-color: #fdf2f2; border-left: 5px solid #e74c3c; padding: 12px 15px; margin: 12px 0; border-radius: 0 5px 5px 0; color: #111111; font-size: 1.15em; font-weight: bold; line-height: 1.5; }
+        .highlight-main .ref-title { color: #c0392b; font-size: 0.85em; display: block; margin-bottom: 5px; }
+        .highlight-aux { color: #333333; font-size: 1em; margin-left: 10px; border-left: 3px solid #bdc3c7; padding-left: 12px; }
+
+        /* --- 🔍 深度分析卡片樣式 (直式排列) --- */
+        .adv-analysis-container { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
+        .adv-gua-box { background: #fafafa; border: 1px solid #eaeaea; border-radius: 8px; padding: 15px; text-align: left; transition: background-color 0.3s, border-color 0.3s; }
         
-        .highlight-main {
-            background-color: #fdf2f2; /* 極淺的紅底 */
-            border-left: 5px solid #e74c3c;
-            padding: 12px 15px;
-            margin: 12px 0;
-            border-radius: 0 5px 5px 0;
-            color: #111111; /* 【關鍵】極深色，確保古文清晰 */
-            font-size: 1.15em;
-            font-weight: bold;
-            line-height: 1.5;
-        }
-        .highlight-main .ref-title {
-            color: #c0392b; /* 提示字維持紅色 */
-            font-size: 0.85em;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .highlight-aux {
-            color: #333333; /* 淺色模式的輔助字也加深 */
-            font-size: 1em;
-            margin-left: 10px;
-            border-left: 3px solid #bdc3c7;
-            padding-left: 12px;
-        }
+        .adv-gua-header { display: flex; align-items: center; gap: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 10px; transition: border-color 0.3s; }
+        /* 縮小卡片內的卦象圖 */
+        .adv-gua-header .hexagram-box { margin: 0; width: 45px; gap: 4px; }
+        .adv-gua-header .yao { height: 7px; }
+        
+        .adv-gua-title { font-size: 1.2em; color: #2c3e50; font-weight: bold; transition: color 0.3s; }
+        .adv-gua-name { color: #d35400; font-size: 0.95em; margin-left: 8px; transition: color 0.3s; }
+        
+        .adv-desc { font-size: 0.95em; color: #16a085; font-weight: bold; margin-bottom: 8px; line-height: 1.5; transition: color 0.3s; }
+        .adv-guaci { font-size: 1em; color: #333; background-color: #fff; padding: 10px; border-radius: 5px; border: 1px solid #eee; transition: all 0.3s; }
 
         .app-footer { text-align: center; margin-top: 40px; padding-top: 15px; border-top: 1px solid #ddd; color: #7f8c8d; font-size: 0.9em; line-height: 1.8; transition: border-color 0.3s; }
 
-        /* --- 📱 深色模式 (Dark Mode) 支援 (黑底白字) --- */
+        /* --- 📱 深色模式 --- */
         @media (prefers-color-scheme: dark) {
             body { background-color: #121212; color: #e0e0e0; }
             h1, .section-title { color: #d4af37; border-bottom: 2px solid #333; }
@@ -92,19 +68,18 @@
 
             .interp-box { background-color: #2a2a2a !important; }
             .interp-title { color: #d4af37; }
-            
-            .highlight-main {
-                background-color: rgba(231, 76, 60, 0.15); /* 微微的暗紅底透光 */
-                border-left: 5px solid #ff5252;
-                color: #ffffff; /* 【關鍵】純白色，在深色背景下絕對清晰 */
-            }
-            .highlight-main .ref-title {
-                color: #ffca28; /* 提示字改用明亮的金黃色 */
-            }
-            .highlight-aux {
-                color: #e0e0e0; /* 輔助字改為亮淺灰色 */
-                border-left: 3px solid #7f8c8d;
-            }
+            .highlight-main { background-color: rgba(231, 76, 60, 0.15); border-left: 5px solid #ff5252; color: #ffffff; }
+            .highlight-main .ref-title { color: #ffca28; }
+            .highlight-aux { color: #e0e0e0; border-left: 3px solid #7f8c8d; }
+
+            /* 深色模式下的深度分析卡片 */
+            .adv-gua-box { background: #242424; border-color: #333; }
+            .adv-gua-header { border-bottom-color: #444; }
+            .adv-gua-title { color: #ecf0f1; }
+            .adv-gua-name { color: #ffca28; }
+            .adv-desc { color: #1abc9c; } /* 明亮的青綠色，閱讀舒適 */
+            .adv-guaci { color: #e0e0e0; background-color: #1a1a1a; border-color: #333; }
+
             .app-footer { border-top: 1px solid #333; }
         }
     </style>
@@ -140,6 +115,40 @@
         </div>
 
         <div id="interp-bottom" class="interp-box" style="display:none;"></div>
+
+        <div id="advanced-section" style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #ccc; display: none;">
+            <h3 class="interp-title" style="text-align: center;">🔍 深度分析：多維度視角</h3>
+            <div class="adv-analysis-container">
+                
+                <div class="adv-gua-box">
+                    <div class="adv-gua-header">
+                        <div id="hu-pic"></div>
+                        <div class="adv-gua-title">互卦 <span id="hu-name" class="adv-gua-name">--</span></div>
+                    </div>
+                    <div class="adv-desc">【看內部】：這件事的內部正在醞釀什麼？過程會有什麼隱憂？（剖析本卦的內在）</div>
+                    <div class="adv-guaci"><strong>卦辭：</strong><span id="hu-guaci">--</span></div>
+                </div>
+
+                <div class="adv-gua-box">
+                    <div class="adv-gua-header">
+                        <div id="cuo-pic"></div>
+                        <div class="adv-gua-title">錯卦 <span id="cuo-name" class="adv-gua-name">--</span></div>
+                    </div>
+                    <div class="adv-desc">【看極端】：如果我採取跟現在完全相反的極端手段，局面會變成怎樣？（本卦的陰陽反轉）</div>
+                    <div class="adv-guaci"><strong>卦辭：</strong><span id="cuo-guaci">--</span></div>
+                </div>
+
+                <div class="adv-gua-box">
+                    <div class="adv-gua-header">
+                        <div id="zong-pic"></div>
+                        <div class="adv-gua-title">綜卦 <span id="zong-name" class="adv-gua-name">--</span></div>
+                    </div>
+                    <div class="adv-desc">【看客觀】：如果我站在對手、或客觀第三人的立場，他們是怎麼看這件事的？（本卦的上下顛倒）</div>
+                    <div class="adv-guaci"><strong>卦辭：</strong><span id="zong-guaci">--</span></div>
+                </div>
+
+            </div>
+        </div>
     </div>
 
     <div class="app-footer">
