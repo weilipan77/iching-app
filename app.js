@@ -1,6 +1,11 @@
 // app.js
 
-// 🌟 API Key 管理邏輯
+// 🌟 新增：八卦(三爻)的二進位對應表，用來解析上下卦
+const baGuaMap = {
+    "111": "乾(天)", "110": "兌(澤)", "101": "離(火)", "100": "震(雷)",
+    "011": "巽(風)", "010": "坎(水)", "001": "艮(山)", "000": "坤(地)"
+};
+
 document.getElementById('setup-api-btn').addEventListener('click', function() {
     let currentKey = localStorage.getItem('gemini_api_key') || '';
     let newKey = prompt("請輸入您的 Gemini API Key：\n(此金鑰僅會儲存於您的設備本機，確保安全)", currentKey);
@@ -45,41 +50,47 @@ function getGuaIdByBinary(binaryStr) {
     return null; 
 }
 
-// 🌟 呼叫 Gemini API 的非同步函式
 async function fetchAIInterpretation(promptText) {
     const apiKey = localStorage.getItem('gemini_api_key');
     if (!apiKey) return null;
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }]
-            })
+            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
         });
-        
         const data = await response.json();
-        if (data.error) {
-            console.error("API 錯誤:", data.error);
-            return "API 金鑰錯誤或額度已滿，無法取得 AI 解析。";
-        }
+        if (data.error) return "API 金鑰錯誤或額度已滿，無法取得 AI 解析。";
         return data.candidates[0].content.parts[0].text;
     } catch (error) {
-        console.error("網路連線錯誤:", error);
         return "無法連線至 AI 伺服器，請檢查網路連線。";
     }
+}
+
+// 🌟 輔助函式：用來將卦名加上 [上X 下Y] 的格式
+function formatGuaNameWithParts(baseName, binaryStr) {
+    let lowerBinary = binaryStr.substring(0, 3); // 內卦 (下半部 1~3爻)
+    let upperBinary = binaryStr.substring(3, 6); // 外卦 (上半部 4~6爻)
+    return `${baseName} [上${baGuaMap[upperBinary]} 下${baGuaMap[lowerBinary]}]`;
 }
 
 document.getElementById('divine-btn').addEventListener('click', async function() {
     const method = document.getElementById('method-select').value;
     const userQuestion = document.getElementById('user-question').value.trim();
     
+    // 🌟 顯示使用者問題
+    const questionDisplay = document.getElementById('question-display');
+    if (userQuestion) {
+        questionDisplay.innerText = `❓ 您的提問：${userQuestion}`;
+        questionDisplay.style.display = 'block';
+    } else {
+        questionDisplay.style.display = 'none';
+    }
+
     let origBinary = "", transBinary = "", changingLines = [];
 
-    // 1. 產生本卦與之卦
     for(let i = 0; i < 6; i++) {
         let lineValue = castLine(method);
         if (lineValue === 7 || lineValue === 9) origBinary += "1"; else origBinary += "0";
@@ -92,9 +103,10 @@ document.getElementById('divine-btn').addEventListener('click', async function()
     const origGua = iChingData[origId];
     const transGua = iChingData[transId];
 
-    document.getElementById('orig-name').innerText = origGua.name;
+    // 🌟 將卦名套用上下卦結構解析
+    document.getElementById('orig-name').innerText = formatGuaNameWithParts(origGua.name, origBinary);
     document.getElementById('orig-guaci').innerText = origGua.gua_ci;
-    document.getElementById('trans-name').innerText = transGua.name;
+    document.getElementById('trans-name').innerText = formatGuaNameWithParts(transGua.name, transBinary);
     document.getElementById('trans-guaci').innerText = transGua.gua_ci;
 
     let count = changingLines.length;
@@ -111,7 +123,6 @@ document.getElementById('divine-btn').addEventListener('click', async function()
     drawHexagram(origBinary, 'orig-pic', changingLines); 
     drawHexagram(transBinary, 'trans-pic', transHighlight); 
 
-    // 2. 解卦指示排版與收集核心古文 (給 AI 參考用)
     let changingText = `<h3 class="interp-title">解卦指示</h3>`;
     changingText += `本次卜卦共有 <strong style="color:#e74c3c;">${count}</strong> 個變爻。<br><br>`;
     
@@ -175,7 +186,6 @@ document.getElementById('divine-btn').addEventListener('click', async function()
         interpBottom.style.display = 'none'; interpTop.style.display = 'block'; interpTop.innerHTML = changingText; 
     }
 
-    // 3. 互卦、錯卦、綜卦演算法
     let huBinary = origBinary[1] + origBinary[2] + origBinary[3] + origBinary[2] + origBinary[3] + origBinary[4];
     let cuoBinary = origBinary.split('').map(b => b === '1' ? '0' : '1').join('');
     let zongBinary = origBinary.split('').reverse().join('');
@@ -184,9 +194,10 @@ document.getElementById('divine-btn').addEventListener('click', async function()
     let cuoId = getGuaIdByBinary(cuoBinary);
     let zongId = getGuaIdByBinary(zongBinary);
 
-    document.getElementById('hu-name').innerText = iChingData[huId].name;
-    document.getElementById('cuo-name').innerText = iChingData[cuoId].name;
-    document.getElementById('zong-name').innerText = iChingData[zongId].name;
+    // 🌟 深度分析也加上上下卦解析
+    document.getElementById('hu-name').innerText = formatGuaNameWithParts(iChingData[huId].name, huBinary);
+    document.getElementById('cuo-name').innerText = formatGuaNameWithParts(iChingData[cuoId].name, cuoBinary);
+    document.getElementById('zong-name').innerText = formatGuaNameWithParts(iChingData[zongId].name, zongBinary);
 
     document.getElementById('hu-guaci').innerText = iChingData[huId].gua_ci;
     document.getElementById('cuo-guaci').innerText = iChingData[cuoId].gua_ci;
@@ -199,7 +210,6 @@ document.getElementById('divine-btn').addEventListener('click', async function()
     document.getElementById('result-panel').style.display = 'block';
     document.getElementById('advanced-section').style.display = 'block';
 
-    // 🌟 4. 觸發 AI 解惑 (加入互、錯、綜視角)
     const apiKey = localStorage.getItem('gemini_api_key');
     const aiPanel = document.getElementById('ai-panel');
     const aiContent = document.getElementById('ai-content');
@@ -221,13 +231,13 @@ document.getElementById('divine-btn').addEventListener('click', async function()
         卜出的本卦是『${origGua.name}』，之卦是『${transGua.name}』。
         根據朱熹的解卦法則，本次主要參考的古文是：${focusTextForAI}。
 
-        為了給予更全方位的深度解析，請你一併將以下三個延伸維度納入思考框架：
-        1. 【互卦】(象徵事物發展的過程與內部隱憂)：『${iChingData[huId].name}』 (卦辭：${iChingData[huId].gua_ci})
-        2. 【錯卦】(象徵採取極端反向策略時的可能局面)：『${iChingData[cuoId].name}』 (卦辭：${iChingData[cuoId].gua_ci})
-        3. 【綜卦】(象徵換位思考、客觀第三者的視角)：『${iChingData[zongId].name}』 (卦辭：${iChingData[zongId].gua_ci})
+        請一併將以下三個延伸維度納入思考框架：
+        1. 【互卦】(過程與內部隱憂)：『${iChingData[huId].name}』 (卦辭：${iChingData[huId].gua_ci})
+        2. 【錯卦】(極端反向策略)：『${iChingData[cuoId].name}』 (卦辭：${iChingData[cuoId].gua_ci})
+        3. 【綜卦】(換位思考)：『${iChingData[zongId].name}』 (卦辭：${iChingData[zongId].gua_ci})
 
-        請用繁體中文（台灣習慣用語）寫一段淺顯易懂的白話文，結合上述的主卦古文與「互、錯、綜」的多維度視角，給予中肯、具啟發性的解讀與建議。
-        語氣要像一位有智慧、溫和的長者。不需要回報卦象的推演計算過程，請直接針對使用者的問題給予解釋與建言即可。`;
+        請用繁體中文（台灣習慣用語）寫一段淺顯易懂的白話文，結合上述古文與「互、錯、綜」的多維度視角，給予中肯、具啟發性的解讀與建議。
+        不需要回報卦象的推演計算過程，請直接針對使用者的問題給予解釋與建言即可。`;
 
         const aiResponse = await fetchAIInterpretation(promptText);
         

@@ -25,6 +25,9 @@
         .result-panel { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; margin-bottom: 30px; transition: background-color 0.3s; }
         .section-title { color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 0; transition: color 0.3s; }
         
+        /* 🌟 新增：使用者問題顯示框樣式 */
+        .question-box { background-color: #e8f4f8; border-left: 5px solid #3498db; padding: 12px 15px; margin-bottom: 20px; border-radius: 0 5px 5px 0; color: #2980b9; font-weight: bold; font-size: 1.1em; transition: all 0.3s; }
+
         /* 卦象圖形樣式 (大圖) */
         .hexagram-box { display: flex; flex-direction: column; width: 80px; margin: 15px auto; gap: 6px; }
         .yao { height: 12px; display: flex; justify-content: space-between; }
@@ -39,7 +42,7 @@
         .highlight-main .ref-title { color: #c0392b; font-size: 0.85em; display: block; margin-bottom: 5px; }
         .highlight-aux { color: #333333; font-size: 1em; margin-left: 10px; border-left: 3px solid #bdc3c7; padding-left: 12px; }
 
-        /* --- 🤖 AI 專屬區塊樣式 --- */
+        /* AI 專屬區塊樣式 */
         .ai-panel { background: #e8f4f8; border: 2px solid #3498db; border-radius: 8px; padding: 20px; margin-top: 25px; display: none; }
         .ai-title { color: #2980b9; margin-top: 0; display: flex; align-items: center; gap: 8px; }
         .ai-content { color: #2c3e50; font-size: 1.05em; line-height: 1.7; white-space: pre-wrap; }
@@ -67,6 +70,8 @@
             button { background-color: #d4af37; color: #121212; }
             button:hover { background-color: #b5952f; }
             
+            .question-box { background-color: rgba(52, 152, 219, 0.15); color: #64b5f6; } /* 問題框深色模式 */
+
             .yang, .yin-part { background-color: #ecf0f1; }
             .changing-yao .yang, .changing-yao .yin-part { background-color: #ff5252; }
 
@@ -76,7 +81,6 @@
             .highlight-main .ref-title { color: #ffca28; }
             .highlight-aux { color: #e0e0e0; border-left: 3px solid #7f8c8d; }
 
-            /* AI 區塊深色模式 */
             .ai-panel { background: #1a252f; border-color: #2980b9; }
             .ai-title { color: #3498db; }
             .ai-content { color: #ecf0f1; }
@@ -112,6 +116,9 @@
     </div>
 
     <div id="result-panel" class="result-panel">
+        
+        <div id="question-display" class="question-box" style="display:none;"></div>
+
         <div>
             <h2 class="section-title">本卦：<span id="orig-name">--</span></h2>
             <div id="orig-pic"></div>
