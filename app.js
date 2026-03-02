@@ -73,50 +73,50 @@ document.getElementById('divine-btn').addEventListener('click', function() {
     drawHexagram(origBinary, 'orig-pic', changingLines); 
     drawHexagram(transBinary, 'trans-pic', transHighlight); 
 
-    // 📝 處理變爻的顯示邏輯 (帶有明確指引與樣式)
+    // 📝 處理變爻的顯示邏輯 (明確切分標籤與古文)
     let changingText = `<h3 class="interp-title">解卦指示</h3>`;
     changingText += `本次卜卦共有 <strong style="color:#e74c3c;">${count}</strong> 個變爻。<br><br>`;
 
     if (count === 0) {
         changingText += `【解卦法則：六爻皆靜】<br>事物處於相對穩定的狀態。`;
-        changingText += `<div class="highlight-main">👉 【主要參考 - 本卦卦辭】<br>「${origGua.gua_ci}」</div>`;
+        changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：本卦卦辭</span>「${origGua.gua_ci}」</div>`;
     } 
     else if (count === 1) {
         let y1 = changingLines[0];
         changingText += `【解卦法則：一爻變】<br>請看發生變動的爻辭，這是最直接的指引：`;
-        changingText += `<div class="highlight-main">👉 【主要參考 - ${origGua.name} ${origGua.yao_ci[y1].name}】<br>「${origGua.yao_ci[y1].text}」</div>`;
+        changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：${origGua.name} ${origGua.yao_ci[y1].name}</span>「${origGua.yao_ci[y1].text}」</div>`;
     } 
     else if (count === 2) {
         let y1 = changingLines[0]; // 下爻
         let y2 = changingLines[1]; // 上爻
         changingText += `【解卦法則：兩爻變】<br>請看本卦的兩個變爻，並以<strong>上位者（${origGua.yao_ci[y2].name}）</strong>為主：`;
-        changingText += `<div class="highlight-main">👉 【主要參考 - ${origGua.yao_ci[y2].name}】<br>「${origGua.yao_ci[y2].text}」</div>`;
-        changingText += `<div class="highlight-aux">次要參考 - ${origGua.yao_ci[y1].name}：「${origGua.yao_ci[y1].text}」</div>`;
+        changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：${origGua.yao_ci[y2].name}</span>「${origGua.yao_ci[y2].text}」</div>`;
+        changingText += `<div class="highlight-aux">次要參考：${origGua.yao_ci[y1].name} ➔「${origGua.yao_ci[y1].text}」</div>`;
     } 
     else if (count === 3) {
         changingText += `【解卦法則：三爻變】<br>變動剛好一半，處於轉折點。請綜合參考本卦與之卦的<strong>卦辭</strong>：`;
-        changingText += `<div class="highlight-main">👉 【主要參考 - 本卦 (${origGua.name})】<br>「${origGua.gua_ci}」</div>`;
-        changingText += `<div class="highlight-main" style="margin-top:5px;">👉 【主要參考 - 之卦 (${transGua.name})】<br>「${transGua.gua_ci}」</div>`;
+        changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：本卦 (${origGua.name})</span>「${origGua.gua_ci}」</div>`;
+        changingText += `<div class="highlight-main" style="margin-top:5px;"><span class="ref-title">👉 綜合參考：之卦 (${transGua.name})</span>「${transGua.gua_ci}」</div>`;
     } 
     else if (count === 4) {
         let s1 = staticLines[0]; // 下爻
         let s2 = staticLines[1]; // 上爻
         changingText += `【解卦法則：四爻變】<br>未來趨勢成形。請看<strong>之卦（${transGua.name}）</strong>的兩個靜爻，並以<strong>下位者（${transGua.yao_ci[s1].name}）</strong>為主：`;
-        changingText += `<div class="highlight-main">👉 【主要參考 - ${transGua.yao_ci[s1].name}】<br>「${transGua.yao_ci[s1].text}」</div>`;
-        changingText += `<div class="highlight-aux">次要參考 - ${transGua.yao_ci[s2].name}：「${transGua.yao_ci[s2].text}」</div>`;
+        changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：${transGua.yao_ci[s1].name}</span>「${transGua.yao_ci[s1].text}」</div>`;
+        changingText += `<div class="highlight-aux">次要參考：${transGua.yao_ci[s2].name} ➔「${transGua.yao_ci[s2].text}」</div>`;
     } 
     else if (count === 5) {
         let s1 = staticLines[0];
         changingText += `【解卦法則：五爻變】<br>變動將達極限。請看<strong>之卦（${transGua.name}）</strong>唯一沒變的靜爻：`;
-        changingText += `<div class="highlight-main">👉 【主要參考 - ${transGua.yao_ci[s1].name}】<br>「${transGua.yao_ci[s1].text}」</div>`;
+        changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：${transGua.yao_ci[s1].name}</span>「${transGua.yao_ci[s1].text}」</div>`;
     } 
     else if (count === 6) {
         if (origId === "1" || origId === "2") {
             changingText += `【解卦法則：六爻全變 (特例)】<br>請看本卦（${origGua.name}）的專屬特例：`;
-            changingText += `<div class="highlight-main">👉 【主要參考 - 乾坤特例】<br>「${origGua.special}」</div>`;
+            changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：乾坤特例</span>「${origGua.special}」</div>`;
         } else {
             changingText += `【解卦法則：六爻全變】<br>原狀態已完全翻轉。請直接看<strong>之卦（${transGua.name}）</strong>的卦辭：`;
-            changingText += `<div class="highlight-main">👉 【主要參考 - 之卦卦辭】<br>「${transGua.gua_ci}」</div>`;
+            changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：之卦卦辭</span>「${transGua.gua_ci}」</div>`;
         }
     }
 
