@@ -1,5 +1,15 @@
 // app.js
 
+// 🌟 API Key 管理邏輯
+document.getElementById('setup-api-btn').addEventListener('click', function() {
+    let currentKey = localStorage.getItem('gemini_api_key') || '';
+    let newKey = prompt("請輸入您的 Gemini API Key：\n(此金鑰僅會儲存於您的設備本機，確保安全)", currentKey);
+    if (newKey !== null) {
+        localStorage.setItem('gemini_api_key', newKey.trim());
+        alert("API Key 已儲存！下次卜卦將自動啟用 AI 解惑功能。");
+    }
+});
+
 function drawHexagram(binaryStr, containerId, highlightLines = []) {
     let html = '<div class="hexagram-box">';
     for (let i = 5; i >= 0; i--) {
@@ -35,8 +45,38 @@ function getGuaIdByBinary(binaryStr) {
     return null; 
 }
 
-document.getElementById('divine-btn').addEventListener('click', function() {
+// 🌟 呼叫 Gemini API 的非同步函式
+async function fetchAIInterpretation(promptText) {
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) return null;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }]
+            })
+        });
+        
+        const data = await response.json();
+        if (data.error) {
+            console.error("API 錯誤:", data.error);
+            return "API 金鑰錯誤或額度已滿，無法取得 AI 解析。";
+        }
+        return data.candidates[0].content.parts[0].text;
+    } catch (error) {
+        console.error("網路連線錯誤:", error);
+        return "無法連線至 AI 伺服器，請檢查網路連線。";
+    }
+}
+
+document.getElementById('divine-btn').addEventListener('click', async function() {
     const method = document.getElementById('method-select').value;
+    const userQuestion = document.getElementById('user-question').value.trim();
+    
     let origBinary = "", transBinary = "", changingLines = [];
 
     // 1. 產生本卦與之卦
@@ -71,48 +111,58 @@ document.getElementById('divine-btn').addEventListener('click', function() {
     drawHexagram(origBinary, 'orig-pic', changingLines); 
     drawHexagram(transBinary, 'trans-pic', transHighlight); 
 
-    // 2. 解卦指示排版
+    // 2. 解卦指示排版與收集核心古文 (給 AI 參考用)
     let changingText = `<h3 class="interp-title">解卦指示</h3>`;
     changingText += `本次卜卦共有 <strong style="color:#e74c3c;">${count}</strong> 個變爻。<br><br>`;
+    
+    let focusTextForAI = ""; 
 
     if (count === 0) {
         changingText += `【解卦法則：六爻皆靜】<br>事物處於相對穩定的狀態。`;
         changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：本卦卦辭</span>「${origGua.gua_ci}」</div>`;
+        focusTextForAI = `本卦卦辭：「${origGua.gua_ci}」`;
     } 
     else if (count === 1) {
         let y1 = changingLines[0];
         changingText += `【解卦法則：一爻變】<br>請看發生變動的爻辭，這是最直接的指引：`;
         changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：${origGua.name} ${origGua.yao_ci[y1].name}</span>「${origGua.yao_ci[y1].text}」</div>`;
+        focusTextForAI = `${origGua.yao_ci[y1].name} 爻辭：「${origGua.yao_ci[y1].text}」`;
     } 
     else if (count === 2) {
         let y1 = changingLines[0]; let y2 = changingLines[1]; 
         changingText += `【解卦法則：兩爻變】<br>請看本卦的兩個變爻，並以<strong>上位者（${origGua.yao_ci[y2].name}）</strong>為主：`;
         changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：${origGua.yao_ci[y2].name}</span>「${origGua.yao_ci[y2].text}」</div>`;
         changingText += `<div class="highlight-aux">次要參考：${origGua.yao_ci[y1].name} ➔「${origGua.yao_ci[y1].text}」</div>`;
+        focusTextForAI = `主要為 ${origGua.yao_ci[y2].name} 爻辭：「${origGua.yao_ci[y2].text}」，輔以 ${origGua.yao_ci[y1].name} 爻辭：「${origGua.yao_ci[y1].text}」`;
     } 
     else if (count === 3) {
         changingText += `【解卦法則：三爻變】<br>變動剛好一半，處於轉折點。請綜合參考本卦與之卦的<strong>卦辭</strong>：`;
         changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：本卦 (${origGua.name})</span>「${origGua.gua_ci}」</div>`;
         changingText += `<div class="highlight-main" style="margin-top:5px;"><span class="ref-title">👉 綜合參考：之卦 (${transGua.name})</span>「${transGua.gua_ci}」</div>`;
+        focusTextForAI = `本卦卦辭：「${origGua.gua_ci}」，以及之卦卦辭：「${transGua.gua_ci}」`;
     } 
     else if (count === 4) {
         let s1 = staticLines[0]; let s2 = staticLines[1]; 
         changingText += `【解卦法則：四爻變】<br>未來趨勢成形。請看<strong>之卦（${transGua.name}）</strong>的兩個靜爻，並以<strong>下位者（${transGua.yao_ci[s1].name}）</strong>為主：`;
         changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：${transGua.yao_ci[s1].name}</span>「${transGua.yao_ci[s1].text}」</div>`;
         changingText += `<div class="highlight-aux">次要參考：${transGua.yao_ci[s2].name} ➔「${transGua.yao_ci[s2].text}」</div>`;
+        focusTextForAI = `之卦 ${transGua.yao_ci[s1].name} 靜爻：「${transGua.yao_ci[s1].text}」`;
     } 
     else if (count === 5) {
         let s1 = staticLines[0];
         changingText += `【解卦法則：五爻變】<br>變動將達極限。請看<strong>之卦（${transGua.name}）</strong>唯一沒變的靜爻：`;
         changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：${transGua.yao_ci[s1].name}</span>「${transGua.yao_ci[s1].text}」</div>`;
+        focusTextForAI = `之卦 ${transGua.yao_ci[s1].name} 唯一靜爻：「${transGua.yao_ci[s1].text}」`;
     } 
     else if (count === 6) {
         if (origId === "1" || origId === "2") {
             changingText += `【解卦法則：六爻全變 (特例)】<br>請看本卦（${origGua.name}）的專屬特例：`;
             changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：乾坤特例</span>「${origGua.special}」</div>`;
+            focusTextForAI = `乾坤特例：「${origGua.special}」`;
         } else {
             changingText += `【解卦法則：六爻全變】<br>原狀態已完全翻轉。請直接看<strong>之卦（${transGua.name}）</strong>的卦辭：`;
             changingText += `<div class="highlight-main"><span class="ref-title">👉 主要參考：之卦卦辭</span>「${transGua.gua_ci}」</div>`;
+            focusTextForAI = `之卦卦辭：「${transGua.gua_ci}」`;
         }
     }
 
@@ -125,7 +175,7 @@ document.getElementById('divine-btn').addEventListener('click', function() {
         interpBottom.style.display = 'none'; interpTop.style.display = 'block'; interpTop.innerHTML = changingText; 
     }
 
-    // 🌟 3. 互卦、錯卦、綜卦演算法與資料填寫
+    // 3. 互卦、錯卦、綜卦演算法
     let huBinary = origBinary[1] + origBinary[2] + origBinary[3] + origBinary[2] + origBinary[3] + origBinary[4];
     let cuoBinary = origBinary.split('').map(b => b === '1' ? '0' : '1').join('');
     let zongBinary = origBinary.split('').reverse().join('');
@@ -134,21 +184,57 @@ document.getElementById('divine-btn').addEventListener('click', function() {
     let cuoId = getGuaIdByBinary(cuoBinary);
     let zongId = getGuaIdByBinary(zongBinary);
 
-    // 填寫卦名
     document.getElementById('hu-name').innerText = iChingData[huId].name;
     document.getElementById('cuo-name').innerText = iChingData[cuoId].name;
     document.getElementById('zong-name').innerText = iChingData[zongId].name;
 
-    // 填寫卦辭
     document.getElementById('hu-guaci').innerText = iChingData[huId].gua_ci;
     document.getElementById('cuo-guaci').innerText = iChingData[cuoId].gua_ci;
     document.getElementById('zong-guaci').innerText = iChingData[zongId].gua_ci;
 
-    // 畫出小圖
     drawHexagram(huBinary, 'hu-pic', []);
     drawHexagram(cuoBinary, 'cuo-pic', []);
     drawHexagram(zongBinary, 'zong-pic', []);
 
     document.getElementById('result-panel').style.display = 'block';
     document.getElementById('advanced-section').style.display = 'block';
+
+    // 🌟 4. 觸發 AI 解惑 (加入互、錯、綜視角)
+    const apiKey = localStorage.getItem('gemini_api_key');
+    const aiPanel = document.getElementById('ai-panel');
+    const aiContent = document.getElementById('ai-content');
+    const aiLoading = document.getElementById('ai-loading');
+
+    if (apiKey) {
+        aiPanel.style.display = 'block';
+        aiContent.style.display = 'none';
+        aiLoading.style.display = 'block';
+
+        let promptText = `你現在是一位精通易經的國學大師。`;
+        if (userQuestion) {
+            promptText += `使用者問的問題是：「${userQuestion}」。`;
+        } else {
+            promptText += `使用者沒有輸入具體問題，請給予廣泛的心境與運勢建議。`;
+        }
+        
+        promptText += `
+        卜出的本卦是『${origGua.name}』，之卦是『${transGua.name}』。
+        根據朱熹的解卦法則，本次主要參考的古文是：${focusTextForAI}。
+
+        為了給予更全方位的深度解析，請你一併將以下三個延伸維度納入思考框架：
+        1. 【互卦】(象徵事物發展的過程與內部隱憂)：『${iChingData[huId].name}』 (卦辭：${iChingData[huId].gua_ci})
+        2. 【錯卦】(象徵採取極端反向策略時的可能局面)：『${iChingData[cuoId].name}』 (卦辭：${iChingData[cuoId].gua_ci})
+        3. 【綜卦】(象徵換位思考、客觀第三者的視角)：『${iChingData[zongId].name}』 (卦辭：${iChingData[zongId].gua_ci})
+
+        請用繁體中文（台灣習慣用語）寫一段淺顯易懂的白話文，結合上述的主卦古文與「互、錯、綜」的多維度視角，給予中肯、具啟發性的解讀與建議。
+        語氣要像一位有智慧、溫和的長者。不需要回報卦象的推演計算過程，請直接針對使用者的問題給予解釋與建言即可。`;
+
+        const aiResponse = await fetchAIInterpretation(promptText);
+        
+        aiLoading.style.display = 'none';
+        aiContent.style.display = 'block';
+        aiContent.innerText = aiResponse;
+    } else {
+        aiPanel.style.display = 'none';
+    }
 });
