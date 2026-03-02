@@ -9,145 +9,99 @@
     <meta name="theme-color" content="#2c3e50">
 
     <style>
-        /* --- 基礎版面與美化樣式 --- */
+        /* --- 基礎版面與美化樣式 (預設淺色模式) --- */
         body { 
             font-family: "微軟正黑體", sans-serif; 
-            max-width: 600px; /* 適合手機與平板閱讀的寬度 */
+            max-width: 600px; 
             margin: 0 auto; 
             padding: 20px; 
             line-height: 1.6; 
             background-color: #f4f4f4;
             color: #333;
+            transition: background-color 0.3s, color 0.3s; 
         }
-        h1 { 
-            text-align: center; 
-            color: #2c3e50;
-            margin-top: 10px;
-        }
-        .header-icon {
-            font-size: 50px;
-            text-align: center;
-            color: #d4af37; /* 金色太極圖騰 */
-            margin-bottom: -15px;
-        }
+        h1 { text-align: center; color: #2c3e50; margin-top: 10px; transition: color 0.3s; }
+        .header-icon { font-size: 50px; text-align: center; color: #d4af37; margin-bottom: -15px; }
 
         .control-panel { 
-            background: #fff; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            text-align: center; 
-            margin-bottom: 20px; 
-            border-top: 5px solid #d4af37;
+            background: #fff; padding: 20px; border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; 
+            margin-bottom: 20px; border-top: 5px solid #d4af37; transition: background-color 0.3s;
         }
-        select, button { 
-            font-size: 16px; 
-            padding: 10px; 
-            margin: 10px 5px; 
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        select {
-            width: 80%;
-            border: 1px solid #ccc;
-        }
-        button { 
-            cursor: pointer; 
-            background-color: #2c3e50; 
-            color: white; 
-            border: none; 
-            font-weight: bold;
-            width: 80%;
-            transition: background 0.3s;
-        }
+        select, button { font-size: 16px; padding: 10px; margin: 10px 5px; border-radius: 5px; box-sizing: border-box; }
+        select { width: 80%; border: 1px solid #ccc; }
+        button { cursor: pointer; background-color: #2c3e50; color: white; border: none; font-weight: bold; width: 80%; transition: background 0.3s; }
         button:hover { background-color: #34495e; }
         
         .result-panel { 
-            background: #fff;
-            padding: 25px; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            display: none; /* 初始狀態隱藏，算出結果後再顯示 */
-            margin-bottom: 30px;
+            background: #fff; padding: 25px; border-radius: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; 
+            margin-bottom: 30px; transition: background-color 0.3s;
         }
-        .section-title { 
-            color: #2c3e50; 
-            border-bottom: 2px solid #eee; 
-            padding-bottom: 8px; 
-            margin-top: 0;
-        }
+        .section-title { color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 0; transition: color 0.3s; }
         
-        /* --- 易經卦象圖形樣式 --- */
-        .hexagram-box {
-            display: flex;
-            flex-direction: column; /* 讓六個爻由上往下排 */
-            width: 80px;
-            margin: 15px auto; /* 置中對齊 */
-            gap: 6px; /* 爻與爻之間的間距 */
+        /* 卦象圖形樣式 */
+        .hexagram-box { display: flex; flex-direction: column; width: 80px; margin: 15px auto; gap: 6px; }
+        .yao { height: 12px; display: flex; justify-content: space-between; }
+        .yang { background-color: #2c3e50; width: 100%; transition: background-color 0.3s; }
+        .yin-part { background-color: #2c3e50; width: 45%; transition: background-color 0.3s; }
+        .changing-yao .yang, .changing-yao .yin-part { background-color: #e74c3c; }
+
+        /* --- 📝 解說文字標示樣式 (淺色模式) --- */
+        .interp-box { background-color: #fcf8e3; padding: 15px; border-radius: 5px; margin-top: 20px; transition: background-color 0.3s; }
+        .interp-title { margin-top: 0; color: #8a6d3b; transition: color 0.3s; }
+        
+        /* 最主要需要閱讀的文字區塊 (醒目提示) */
+        .highlight-main {
+            background-color: #fce8e6; /* 淺紅色背景 */
+            border-left: 4px solid #e74c3c; /* 左側紅線 */
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+            color: #c0392b; /* 深紅色文字 */
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
         }
-        .yao {
-            height: 12px; /* 每一個爻的粗細 */
-            display: flex;
-            justify-content: space-between;
-        }
-        /* 陽爻：一條連貫的實線 */
-        .yang {
-            background-color: #2c3e50;
-            width: 100%;
-        }
-        /* 陰爻：斷開的兩條短線，中間留空 */
-        .yin-part {
-            background-color: #2c3e50;
-            width: 45%; /* 左右各佔 45%，中間自動留白 10% */
-        }
-        /* 特別標示動爻（變成紅色的） */
-        .changing-yao .yang, .changing-yao .yin-part {
-            background-color: #e74c3c;
+        /* 輔助參考的文字區塊 (降低視覺層級) */
+        .highlight-aux {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-left: 10px;
+            border-left: 2px solid #ccc;
+            padding-left: 10px;
+            transition: color 0.3s, border-color 0.3s;
         }
 
-        /* 作者資訊頁尾樣式 */
-        .app-footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 15px;
-            border-top: 1px solid #ddd;
-            color: #7f8c8d;
-            font-size: 0.9em;
-            line-height: 1.8;
-        }
-    /* --- 📱 深色模式 (Dark Mode) 支援 --- */
+        .app-footer { text-align: center; margin-top: 40px; padding-top: 15px; border-top: 1px solid #ddd; color: #7f8c8d; font-size: 0.9em; line-height: 1.8; transition: border-color 0.3s; }
+
+        /* --- 📱 深色模式 (Dark Mode) 支援 --- */
         @media (prefers-color-scheme: dark) {
-            body { 
-                background-color: #121212; 
-                color: #e0e0e0; 
-            }
-            h1, .section-title { 
-                color: #d4af37; /* 標題改成金色 */
-                border-bottom: 2px solid #333; 
-            }
-            .control-panel, .result-panel { 
-                background: #1e1e1e; 
-                box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
-                border-top: 5px solid #d4af37;
-            }
-            select, button { 
-                background-color: #2c2c2c; 
-                color: #fff; 
-                border: 1px solid #444; 
-            }
+            body { background-color: #121212; color: #e0e0e0; }
+            h1, .section-title { color: #d4af37; border-bottom: 2px solid #333; }
+            .control-panel, .result-panel { background: #1e1e1e; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border-top: 5px solid #d4af37; }
+            select { background-color: #2c2c2c; color: #fff; border: 1px solid #444; }
             button { background-color: #d4af37; color: #121212; }
             button:hover { background-color: #b5952f; }
             
-            /* 【關鍵】把正常的爻變成淺色 */
             .yang, .yin-part { background-color: #ecf0f1; }
-            /* 把動爻的紅色調亮一點，在黑底上更清晰 */
             .changing-yao .yang, .changing-yao .yin-part { background-color: #ff5252; }
 
-            /* 解卦區塊的顏色調整 */
-            #interp-top, #interp-bottom { background-color: #2a2a2a !important; }
-            .yao-name { color: #d4af37; } /* 動爻名稱改金色 */
-            .yao-text { color: #e0e0e0; }
-            .assist-text { color: #95a5a6; }
+            /* 解卦區塊深色配置 */
+            .interp-box { background-color: #2a2a2a !important; }
+            .interp-title { color: #d4af37; }
+            
+            /* 深色模式下的醒目提示 */
+            .highlight-main {
+                background-color: #3e2723; /* 深咖啡/紅色背景 */
+                border-left: 4px solid #ff5252;
+                color: #ffb142; /* 金黃色文字，非常清楚 */
+            }
+            /* 深色模式下的輔助參考 */
+            .highlight-aux {
+                color: #95a5a6;
+                border-left: 2px solid #555;
+            }
             .app-footer { border-top: 1px solid #333; }
         }
     </style>
@@ -168,15 +122,13 @@
     </div>
 
     <div id="result-panel" class="result-panel">
-        
         <div>
             <h2 class="section-title">本卦：<span id="orig-name">--</span></h2>
             <div id="orig-pic"></div>
             <p><strong>卦辭：</strong> <span id="orig-guaci">--</span></p>
         </div>
         
-        <div id="interp-top" style="display:none; margin-top: 20px; background-color: #fcf8e3; padding: 15px; border-radius: 5px;">
-        </div>
+        <div id="interp-top" class="interp-box" style="display:none;"></div>
 
         <div style="margin-top: 20px;">
             <h2 class="section-title">之卦：<span id="trans-name">--</span></h2>
@@ -184,9 +136,7 @@
             <p><strong>卦辭：</strong> <span id="trans-guaci">--</span></p>
         </div>
 
-        <div id="interp-bottom" style="display:none; margin-top: 20px; background-color: #fcf8e3; padding: 15px; border-radius: 5px;">
-        </div>
-
+        <div id="interp-bottom" class="interp-box" style="display:none;"></div>
     </div>
 
     <div class="app-footer">
@@ -198,18 +148,12 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker 註冊成功！', registration.scope);
-                    })
-                    .catch(err => {
-                        console.log('ServiceWorker 註冊失敗：', err);
-                    });
+                    .then(registration => console.log('ServiceWorker 註冊成功！', registration.scope))
+                    .catch(err => console.log('ServiceWorker 註冊失敗：', err));
             });
         }
     </script>
-
     <script src="data.js"></script>
-    
     <script src="app.js"></script>
 
 </body>
