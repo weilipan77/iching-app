@@ -1,6 +1,6 @@
 // app.js
 
-// 🌟 新增：八卦(三爻)的二進位對應表，用來解析上下卦
+// 🌟 新增：八卦(三爻)的二進位對應表，用來解析上下卦的名稱與象徵自然元素
 const baGuaMap = {
     "111": "乾(天)", "110": "兌(澤)", "101": "離(火)", "100": "震(雷)",
     "011": "巽(風)", "010": "坎(水)", "001": "艮(山)", "000": "坤(地)"
@@ -69,11 +69,15 @@ async function fetchAIInterpretation(promptText) {
     }
 }
 
-// 🌟 輔助函式：用來將卦名加上 [上X 下Y] 的格式
+// 🌟 輔助函式：用來將卦名加上 [外X / 內Y] 的格式
 function formatGuaNameWithParts(baseName, binaryStr) {
     let lowerBinary = binaryStr.substring(0, 3); // 內卦 (下半部 1~3爻)
     let upperBinary = binaryStr.substring(3, 6); // 外卦 (上半部 4~6爻)
-    return `${baseName} [上${baGuaMap[upperBinary]} 下${baGuaMap[lowerBinary]}]`;
+    // 當內外卦相同時 (八純卦)，就不用特別標示外內了，顯示本身即可。
+    if (lowerBinary === upperBinary) {
+         return `${baseName} [純${baGuaMap[upperBinary]}]`;
+    }
+    return `${baseName} [外${baGuaMap[upperBinary]} / 內${baGuaMap[lowerBinary]}]`;
 }
 
 document.getElementById('divine-btn').addEventListener('click', async function() {
