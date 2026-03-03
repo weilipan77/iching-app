@@ -50,22 +50,43 @@ function getGuaIdByBinary(binaryStr) {
     return null; 
 }
 
+// 🌟 呼叫 Gemini API 的非同步函式 (替換這整個函式！)
 async function fetchAIInterpretation(promptText) {
     const apiKey = localStorage.getItem('gemini_api_key');
     if (!apiKey) return null;
 
+    // 💡 關鍵修改：確保使用正確的 1.5-flash 端點網址
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }]
+            })
         });
+        
+        // 如果 HTTP 狀態碼不是 200 OK (例如 404, 400, 403)
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("API 狀態碼錯誤:", response.status, errorData);
+            return `連線失敗 (錯誤碼 ${response.status})：請檢查您的 API Key 是否正確，或是該 Key 是否已開通 Gemini 1.5 模型的存取權限。`;
+        }
+
         const data = await response.json();
-        if (data.error) return "API 金鑰錯誤或額度已滿，無法取得 AI 解析。";
-        return data.candidates[0].content.parts[0].text;
+        
+        // 確保回傳資料有我們需要的文字結構
+        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+             return data.candidates[0].content.parts[0].text;
+        } else {
+             console.error("API 回傳格式異常:", data);
+             return "AI 回傳的資料格式無法解析，請稍後再試。";
+        }
+
     } catch (error) {
-        return "無法連線至 AI 伺服器，請檢查網路連線。";
+        console.error("網路連線錯誤:", error);
+        return "無法連線至 AI 伺服器，請檢查網路連線或稍後再試。";
     }
 }
 
