@@ -1,6 +1,6 @@
 // 每次您有修改 index.html, app.js 或 data.js 時，
 // 請務必打開這個檔案，將 v1 改成 v2、v3、v4... 依此類推！
-const CACHE_NAME = 'iching-app-v9'; 
+const CACHE_NAME = 'iching-app-v10'; 
 
 const urlsToCache = [
   './',

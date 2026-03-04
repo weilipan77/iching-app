@@ -55,9 +55,9 @@ async function fetchAIInterpretation(promptText) {
     const apiKey = localStorage.getItem('gemini_api_key');
     if (!apiKey) return null;
 
-    // 💡 關鍵修改：確保使用正確的 1.5-flash 端點網址
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    
+    // 替換為最新的 2.5 版網址：
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
     try {
         const response = await fetch(url, {
             method: 'POST',
